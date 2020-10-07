@@ -1,4 +1,49 @@
 name: site-demo-1
 recipe: drupal8
+proxy:
+  search:
+    - search.trill.lndo.site:8983
 config:
   webroot: .
+  php: 7.4
+  config:
+    php: _config/php.ini
+env_file:
+  - _config/extras.env
+services:
+ search:
+    type: solr:8
+    portforward: true
+    core: drupal
+    config:
+      dir: _config/solr
+events:
+  pre-start:
+    - echo "Drupal UP!"
+tooling:
+  build:
+    description: Manual build
+    cmd:
+      - appserver: composer install
+  test:
+    description: Run all tests
+    cmd:
+      - appserver: composer test
+  update:
+    description: Drupal update
+    cmd:
+      - appserver: composer update
+  php-version:
+    service: :service
+    cmd: php -v
+    options:
+      service:
+        default: appserver
+        describe: Run php in different service
+  cr:
+    service: :service
+    cmd: drush cr
+    options:
+      service:
+        default: appserver
+        describe: Drupal cache rebuild
